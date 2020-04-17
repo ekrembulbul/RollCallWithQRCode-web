@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <title>Login</title>
+  </head>
+  <body>
+    <form action="" class="p-3" style="width: 400px; margin: auto;" method="POST">
+      <div class="form-group">
+        <h1 style="text-align: center;" class="pt-5">Login</h1>
+      </div>
+      <div class="form-group">
+        <input id="email" type="email" name="email" placeholder="Email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <input id="password" type="password" name="password" placeholder="Password" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <p id="errorLabel" style="font-size: small; color: red;"></p>
+      </div>
+      <div class="form-group">
+        <button id="login" type="button" class="btn btn-primary w-100">Login</button>
+      </div>
+    </form>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+    <script>
+      function check() {
+        var data = {};
+        data.email = $("#email").val();
+        data.password = $("#password").val();
+        $("#login").html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+        $.ajax({ 
+          url: '/login/check',
+          type: 'POST',
+          cache: false,
+          data: JSON.stringify(data),
+          contentType: "application/json; charset=utf-8",
+          success: function(data){
+            if (data.result) {
+              window.open("/main", "_top");
+            } else {
+              $("#errorLabel").text(data.message);
+              $("#login").text("Login");
+            }
+            return data.result;
+          },
+          error: function() {
+            alert('Connection error!');
+            $("#login").text("Login");
+          }
+        });
+      }
+
+      $('#login').click(function(){
+        check();
+      });
+    </script>
+  </body>
+</html>
