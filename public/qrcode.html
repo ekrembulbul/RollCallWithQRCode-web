@@ -4,13 +4,22 @@
     <!-- Required meta tags -->
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src https://*; child-src 'none';"> -->
 
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; font-src 'self';"> -->
+
     <title>QR Code</title>
   </head>
   <body>
+    <div class="text-center mt-4" style="width: 420px; margin: auto;" id="result">
+      <button style="width: 150px;" id="activeToggle" type="button" class="btn btn-primary">Active Toggle</button>
+      <p id="successP" class="bg-success text-white p-2 mt-3" style="font-size: large; margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>ACTIVE</b></p>
+      <p id="dangerP" class="bg-danger text-white p-2 mt-3" style="font-size: large;margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>INACTIVE</b></p>
+    </div>
+
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -18,35 +27,75 @@
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="https://unpkg.com/@zxing/library@latest"></script>
+    <script type="text/javascript">
+    /*
+      window.addEventListener('load', () => {
+        
+      });
+      */
+    </script>
 
     <script>
       var url_string = window.location.href
       var url = new URL(url_string);
       var code = url.searchParams.get("code");
+      var dateObj = new Date();
+      var date = dateObj.getUTCFullYear() + '-' + parseInt(dateObj.getUTCMonth() + 1) + '-' + dateObj.getUTCDate();
+      console.log(dateObj.getDate());
+      var lessonCodeString = code + ' ' + date;
+      var active = false;
 
-      $.ajax({ 
-        url: '/qrcode/print',
+      $.ajax({
+        url: '/qrcode/active',
         type: 'POST',
         cache: false,
-        data: JSON.stringify({ code: code }),
+        data: JSON.stringify({ lessonCodeString: lessonCodeString }),
         contentType: "application/json; charset=utf-8",
         success: function(data){
-          /*
-          var obj = JSON.parse(data);
-          var html1 = '<button id="';
-          var html2 = '" type="button" class="list-group-item list-group-item-primary list-group-item-action">';
-          var html3 = '</button>';
-          var counter = 0;
-          $.each(obj, function(key, value) {
-            var html = '<b>' + (parseInt(key) + 1) + ".</b> " + value
-            $("#listGroup").append(html1 + counter + html2 + html + html3);
-            counter++;
-          });
-          */
+          active = data.active;
+          if (data.active) $('#successP').show();
+          else $('#dangerP').show();
+          
+          const codeWriter = new ZXing.BrowserQRCodeSvgWriter();
+          try {
+            codeWriter.writeToDom('#result', lessonCodeString, 420, 420);
+          } catch (err) {
+            console.error(err);
+          }
+          console.log(result);
         },
         error: function() {
           alert('Connection error!');
         }
+      });
+
+      $('#activeToggle').click(function(){
+        active = !active;
+
+        $('#activeToggle').html('<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>');
+        $.ajax({
+          url: '/qrcode/active/toggle',
+          type: 'POST',
+          cache: false,
+          data: JSON.stringify({ lessonCodeString: lessonCodeString, active: active }),
+          contentType: "application/json; charset=utf-8",
+          success: function(data){
+            if (active) {
+              $('#successP').show();
+              $('#dangerP').hide();
+            }
+            else {
+              $('#successP').hide();
+              $('#dangerP').show();
+            }
+            $('#activeToggle').text('Active Toggle');
+          },
+          error: function() {
+            alert('Connection error!');
+            $('#activeToggle').text('Active Toggle');
+          }
+        });
       });
     </script>
   </body>

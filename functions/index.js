@@ -16,26 +16,29 @@ const config = {
 };
 firebase.initializeApp(config);
 
+/*
 app.get('/',function (req, res) {
     if (firebase.auth().currentUser !== null) {
         res.redirect('/main');
     } else {
         res.redirect('/login');
     }
+
 });
+*/
 
 app.get('/main', function (req, res) {
     if (firebase.auth().currentUser === null)  res.redirect('/login');
-    res.sendFile(path.join(__dirname, '../public', 'main.html'));
+    res.sendFile(path.join(__dirname, '../public', '/main.html'));
 });
 
 app.get('/login', function (req, res) {
-    res.sendFile(path.join(__dirname, '../public', 'login.html'));
+    res.sendFile(path.join(__dirname, '../public', '/login.html'));
 });
 
 app.get('/qrcode', function (req, res) {
     if (firebase.auth().currentUser === null)  res.redirect('/login');
-    res.sendFile(path.join(__dirname, '../public', 'qrcode.html'));
+    res.sendFile(path.join(__dirname, '../public', '/qrcode.html'));
 });
 
 app.post('/login/check', function (req, res) {
@@ -93,20 +96,40 @@ app.post('/firebase/data', function (req, res) {
     });
 });
 
-app.post('/qrcode/print', function (req, res) {
-    var code = req.body.code;
-    var dateObj = new Date();
-    var date = dateObj.getFullYear() + '-' + dateObj.getMonth() + '-' + dateObj.getDay();
-    var qrCodeString = code + '_' + date;
+app.post('/qrcode/active', function (req, res) {
+    var lessonCodeString = req.body.lessonCodeString;
+    var lesCodeStr = lessonCodeString.split(" ");
+    console.log(lessonCodeString);
 
-    firebase.database().ref('lessons/' + code + '/' + date + '/active').set(false);
-    var pixMat = buildQrCode(qrCodeString);
+    firebase.database().ref('lessons/' + lesCodeStr[0] + '/dates/' + lesCodeStr[1] + '/active').once('value', function(snapshot){
+        var activeVal = snapshot.val();
+        console.log(activeVal);
+        if (activeVal== null) {
+            firebase.database().ref('lessons/' + lesCodeStr[0] + '/dates/' + lesCodeStr[1] + '/active').set(false).then(function(){
+                res.send({ active: false });
+                res.end();
+            });
+        }
+        else {
+            res.send({ active: activeVal });
+            res.end();
+        }
+    });
+});
 
-    res.end();
+app.post('/qrcode/active/toggle', function (req, res) {
+    var lessonCodeString = req.body.lessonCodeString;
+    var lesCodeStr = lessonCodeString.split(" ");
+    var active = req.body.active;
+
+    firebase.database().ref('lessons/' + lesCodeStr[0] + '/dates/' + lesCodeStr[1] + '/active').set(active).then(function(){
+        res.end();
+    });
 });
 
 exports.app = functions.https.onRequest(app);
-
-function buildQrCode(qrCodeString) {
+/*
+function buildQrCode(lesCodeStr) {
     
 }
+*/
