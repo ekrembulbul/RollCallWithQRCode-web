@@ -16,20 +16,9 @@ const config = {
 };
 firebase.initializeApp(config);
 
-/*
-app.get('/',function (req, res) {
-    if (firebase.auth().currentUser !== null) {
-        res.redirect('/main');
-    } else {
-        res.redirect('/login');
-    }
-
-});
-*/
-
-app.get('/main', function (req, res) {
+app.get('/lesson', function (req, res) {
     if (firebase.auth().currentUser === null)  res.redirect('/login');
-    res.sendFile(path.join(__dirname, '../public', '/main.html'));
+    else res.sendFile(path.join(__dirname, '../public', '/lesson.html'));
 });
 
 app.get('/login', function (req, res) {
@@ -38,7 +27,7 @@ app.get('/login', function (req, res) {
 
 app.get('/qrcode', function (req, res) {
     if (firebase.auth().currentUser === null)  res.redirect('/login');
-    res.sendFile(path.join(__dirname, '../public', '/qrcode.html'));
+    else res.sendFile(path.join(__dirname, '../public', '/qrcode.html'));
 });
 
 app.post('/login/check', function (req, res) {
