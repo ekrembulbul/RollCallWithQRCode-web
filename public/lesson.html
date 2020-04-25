@@ -14,7 +14,11 @@
     <title>Main</title>
   </head>
   <body>
-    <ul id="listGroup" class="list-group mt-5" style="width: 400px; margin: auto;"></ul>
+    <div class="mt-5 mb-5" style="width: 400px; margin: auto;">
+      <h1 style="text-align: center;">Lessons</h1>
+      <ul id="listGroup" class="list-group"></ul>
+      <button id="signout" type="button" class="btn btn-danger w-100 mt-2">Sign out</button>
+    </div>
 
     <!-- Optional JavaScript -->
     <!-- jQuery first, then Popper.js, then Bootstrap JS -->
@@ -27,6 +31,25 @@
       $(".list-group").on("click", ".list-group-item", function(){
           var lessonCode = $(this).text().split(" ");
           window.open("/qrcode?code=" + lessonCode[1]);
+      });
+
+      function signout() {
+        $.ajax({ 
+          url: '/firebase/signout',
+          type: 'POST',
+          cache: false,
+          contentType: "application/json; charset=utf-8",
+          success: function(data){
+            window.open("/login", "_self");
+          },
+          error: function() {
+            alert('Connection error!');
+          }
+        });
+      }
+
+      $('#signout').click(function(){
+        signout();
       });
 
       function readData() {

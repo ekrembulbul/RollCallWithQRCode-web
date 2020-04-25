@@ -72,7 +72,7 @@ app.post('/login/check', function (req, res) {
 app.post('/firebase/data', function (req, res) {
     var lessons = {}
     var name = firebase.auth().currentUser.displayName;
-    firebase.database().ref('teachers/' + name + '/registeredLesson').on('value', function(snapshot){
+    firebase.database().ref('teachers/' + name + '/registeredLesson').once('value', function(snapshot){
         snapshot.forEach(function(childSnapshot) {
             var childKey = childSnapshot.key;
             var childData = childSnapshot.val();
@@ -83,6 +83,12 @@ app.post('/firebase/data', function (req, res) {
         res.send(lessons);
         res.end();
     });
+});
+
+app.post('/firebase/signout', function (req, res) {
+    firebase.auth().signOut().then(function(){
+        res.end();
+    })
 });
 
 app.post('/qrcode/active', function (req, res) {
