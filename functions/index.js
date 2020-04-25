@@ -96,11 +96,11 @@ app.post('/qrcode/active', function (req, res) {
     var lesCodeStr = lessonCodeString.split(" ");
     console.log(lessonCodeString);
 
-    firebase.database().ref('lessons/' + lesCodeStr[0] + '/dates/' + lesCodeStr[1] + '/active').once('value', function(snapshot){
+    firebase.database().ref('lessons/' + lesCodeStr[1] + '/dates/' + lesCodeStr[2] + '/active').once('value', function(snapshot){
         var activeVal = snapshot.val();
         console.log(activeVal);
         if (activeVal== null) {
-            firebase.database().ref('lessons/' + lesCodeStr[0] + '/dates/' + lesCodeStr[1] + '/active').set(false).then(function(){
+            firebase.database().ref('lessons/' + lesCodeStr[1] + '/dates/' + lesCodeStr[2] + '/active').set(false).then(function(){
                 res.send({ active: false });
                 res.end();
             });
@@ -117,7 +117,7 @@ app.post('/qrcode/active/toggle', function (req, res) {
     var lesCodeStr = lessonCodeString.split(" ");
     var active = req.body.active;
 
-    firebase.database().ref('lessons/' + lesCodeStr[0] + '/dates/' + lesCodeStr[1] + '/active').set(active).then(function(){
+    firebase.database().ref('lessons/' + lesCodeStr[1] + '/dates/' + lesCodeStr[2] + '/active').set(active).then(function(){
         res.end();
     });
 });
