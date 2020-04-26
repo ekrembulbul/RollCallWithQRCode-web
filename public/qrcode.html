@@ -43,7 +43,7 @@
       var dateObj = new Date();
       var date = dateObj.getUTCFullYear() + '-' + parseInt(dateObj.getUTCMonth() + 1) + '-' + dateObj.getUTCDate();
       console.log(dateObj.getDate());
-      var lessonCodeString = '$rollcall$ ' + code + ' ' + date;
+      var lessonCodeString = '$rc$ ' + code + ' ' + date;
       var active = false;
 
       $.ajax({

@@ -123,8 +123,83 @@ app.post('/qrcode/active/toggle', function (req, res) {
 });
 
 exports.app = functions.https.onRequest(app);
-/*
-function buildQrCode(lesCodeStr) {
-    
+
+
+
+function fillZeros(length, str) {
+    return '0'.repeat(length-str.length) + str;
 }
-*/
+
+function codding(lesCodeStr) {
+    var lesCodeGroupStr = [];
+    for (let i = 0; i < lesCodeStr.length/2; i++) {
+        lesCodeGroupStr.push(lesCodeStr.substr(i*2, 2));
+    }
+
+    qrCodingStr = "";
+    lesCodeGroupStr.forEach(element => {
+        if (element.length == 2) {
+            var tmp = (45 * data[element[0]]) + data[element[1]];
+            var str = tmp.toString(2);
+            qrCodingStr += fillZeros(11, str);
+        }
+        else if (element.length == 1) {
+            var str = data[element[0]].toString(2);
+            qrCodingStr += fillZeros(6, str);
+        }
+    });
+
+    return qrCodingStr;
+}
+
+function buildQrCode(lesCodeStr) {
+    var lesCodeStr = 'HELLO WORLD'
+    var qrCodeStr = '0010';
+    console.log(qrCodeStr);
+    console.log(qrCodeStr.length);
+
+    var charLengthBinStr = lesCodeStr.length.toString(2);
+    qrCodeStr = qrCodeStr + fillZeros(9, charLengthBinStr);
+    console.log(qrCodeStr);
+    console.log(qrCodeStr.length);
+
+    qrCodeStr += codding(lesCodeStr);
+    console.log(qrCodeStr);
+    console.log(qrCodeStr.length);
+
+    if (qrCodeStr.length == 175) {
+        qrCodeStr += '0';
+    }
+    else if (qrCodeStr.length == 174) {
+        qrCodeStr += '0'.repeat(2);
+    }
+    else if (qrCodeStr.length == 173) {
+        qrCodeStr += '0'.repeat(3);
+    }
+    else if (qrCodeStr.length <= 172) {
+        qrCodeStr += '0'.repeat(4);
+    }
+    console.log(qrCodeStr);
+    console.log(qrCodeStr.length);
+
+    if (qrCodeStr.length % 8 != 0) {
+        qrCodeStr += '0'.repeat(8 - (qrCodeStr.length % 8));
+    }
+    console.log(qrCodeStr);
+    console.log(qrCodeStr.length);
+
+    padStr = ['11101100', '00010001'];
+    if (qrCodeStr.length != 176) {
+        var pedByteCount = (176 - qrCodeStr.length) / 8;
+        for (let i = 0; i < pedByteCount; i++) {
+            if (i % 2 == 0) qrCodeStr += padStr[0];
+            else if (i % 2 == 1) qrCodeStr += padStr[1];
+        }
+    }
+    console.log(qrCodeStr);
+    console.log(qrCodeStr.length);
+
+    var rs = new ReedSolomon(10);
+    var enc = rs.encode([14, 531, 46, 134 ,64]);
+    console.log(enc);
+}
