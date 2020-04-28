@@ -2,7 +2,9 @@ const firebase = require('firebase');
 const functions = require('firebase-functions');
 const path = require("path");
 const express = require('express');
-var bodyParser = require('body-parser')
+const bodyParser = require('body-parser');
+const rs = require('./reedsolomon.js');
+const data = require('./data.json');
 const app = express();
 
 app.use(bodyParser.urlencoded({ extended: false }));
@@ -91,6 +93,11 @@ app.post('/firebase/signout', function (req, res) {
     })
 });
 
+app.post('/qrcode/generate', function (req, res) {
+    buildQrCode('');
+    res.end();
+});
+
 app.post('/qrcode/active', function (req, res) {
     var lessonCodeString = req.body.lessonCodeString;
     var lesCodeStr = lessonCodeString.split(" ");
@@ -152,6 +159,63 @@ function codding(lesCodeStr) {
     return qrCodingStr;
 }
 
+function RS(messageLength, errorCorrectionLength) {
+	var dataLength = messageLength - errorCorrectionLength;
+	var encoder = new rs.ReedSolomonEncoder(rs.GenericGF.AZTEC_DATA_8());
+	var decoder = new rs.ReedSolomonDecoder(rs.GenericGF.AZTEC_DATA_8());
+	return {
+		dataLength: dataLength,
+		messageLength: messageLength,
+		errorCorrectionLength: errorCorrectionLength,
+
+		encode : function (message) {
+			encoder.encode(message, errorCorrectionLength);
+		},
+
+		decode: function (message) {
+			decoder.decode(message, errorCorrectionLength);
+		}
+	};
+}
+
+function errorCodeWordEncode(codeWord, length) {
+    var zeros = new Array(length).fill(0);
+    var arr = codeWord;
+    arr = arr.concat(zeros);
+    console.log(arr.length);
+    console.log(arr);
+    
+    var ec = RS(codeWord.length + length, length);
+    var message = new Int32Array(ec.messageLength);
+    //for (var i = 0; i < ec.dataLength; i++) message[i] = i;
+    message.set(arr);
+
+    console.log('raw data');
+    console.log(Array.prototype.join.call(message));
+    //=> 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,0,0,0,0,0,0,0,0
+
+    ec.encode(message);
+
+    console.log('rs coded');
+    console.log(Array.prototype.join.call(message));
+    //=> 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,180,183,0,112,111,203,47,126
+
+    return Array.from(message);
+
+    /*
+    console.log('corrupted');
+    for (var i = 0; i < 4; i++) message[ Math.floor(Math.random() * message.length) ] = 0xff;
+    console.log(Array.prototype.join.call(message));
+    //=> 0,1,2,3,4,255,6,7,8,9,10,11,12,13,14,15,255,17,18,19,20,21,22,23,255,183,255,112,111,203,47,126
+
+    ec.decode(message);
+
+    console.log('rs decoded');
+    console.log(Array.prototype.join.call(message));
+    //=> 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,180,183,0,112,111,203,47,126
+    */
+}
+
 function buildQrCode(lesCodeStr) {
     var lesCodeStr = 'HELLO WORLD'
     var qrCodeStr = '0010';
@@ -199,7 +263,28 @@ function buildQrCode(lesCodeStr) {
     console.log(qrCodeStr);
     console.log(qrCodeStr.length);
 
-    var rs = new ReedSolomon(10);
-    var enc = rs.encode([14, 531, 46, 134 ,64]);
-    console.log(enc);
+    var codeWordList = [];
+    for (let i = 0; i < qrCodeStr.length/8; i++) {
+        var num = parseInt(qrCodeStr.substr(i*8, 8), 2);
+        codeWordList.push(num);
+    }
+    console.log(codeWordList);
+    console.log(typeof codeWordList);
+    console.log(codeWordList.length);
+
+    codeWordList = errorCodeWordEncode(codeWordList, 22);
+    console.log(codeWordList);
+    console.log(typeof codeWordList);
+    console.log(codeWordList.length);
+
+    qrCodeStr = '';
+    codeWordList.forEach(element => {
+        qrCodeStr += fillZeros(8, element.toString(2));
+    });
+    console.log(qrCodeStr);
+    console.log(qrCodeStr.length);
+
+    qrCodeStr += '0'.repeat(7);
+    console.log(qrCodeStr);
+    console.log(qrCodeStr.length);
 }

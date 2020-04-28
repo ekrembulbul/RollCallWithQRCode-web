@@ -27,6 +27,10 @@
       "function": "app"
       },
       {
+      "source": "/qrcode/generate",
+      "function": "app"
+      },
+      {
       "source": "/qrcode/active",
       "function": "app"
       },
