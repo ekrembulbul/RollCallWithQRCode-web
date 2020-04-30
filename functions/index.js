@@ -94,7 +94,8 @@ app.post('/firebase/signout', function (req, res) {
 });
 
 app.post('/qrcode/generate', function (req, res) {
-    buildQrCode('');
+    var codeStr = buildQrCode('');
+    printQrCode(codeStr);
     res.end();
 });
 
@@ -287,4 +288,10 @@ function buildQrCode(lesCodeStr) {
     qrCodeStr += '0'.repeat(7);
     console.log(qrCodeStr);
     console.log(qrCodeStr.length);
+
+    return qrCodeStr;
+}
+
+void printQrCode(codeStr) {
+
 }
