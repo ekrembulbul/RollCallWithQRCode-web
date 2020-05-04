@@ -43,19 +43,6 @@
     <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
 
     <script>
-      $.ajax({
-        url: '/qrcode/generate',
-        type: 'POST',
-        cache: false,
-        contentType: "application/json; charset=utf-8",
-        success: function(data){
-          
-        },
-        error: function() {
-          alert('Connection error!');
-        }
-      });
-
       function check() {
         var data = {};
         data.email = $("#email").val();

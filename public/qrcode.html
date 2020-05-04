@@ -14,10 +14,12 @@
     <title>QR Code</title>
   </head>
   <body>
-    <div class="text-center mt-4" style="width: 420px; margin: auto;" id="result">
+    <div class="text-center mt-4" style="width: 420px; margin: auto;">
       <button style="width: 150px;" id="activeToggle" type="button" class="btn btn-primary">Active Toggle</button>
       <p id="successP" class="bg-success text-white p-2 mt-3" style="font-size: large; margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>ACTIVE</b></p>
       <p id="dangerP" class="bg-danger text-white p-2 mt-3" style="font-size: large;margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>INACTIVE</b></p>
+      <canvas id="myCanvas" width="250" height="250" class="m-3"> Your browser does not support the HTML5 canvas tag.</canvas>
+      <div id="result"></div>
     </div>
 
 
@@ -37,6 +39,280 @@
     </script>
 
     <script>
+      function printQrCode(codeStr) {
+        var c = document.getElementById("myCanvas");
+        var ctx = c.getContext("2d");
+        var imgData = ctx.createImageData(250, 250);
+        
+        var mat = [[1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1]
+                  ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1]
+                  ,[1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1]
+                  ,[1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1]
+                  ,[1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1]
+                  ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1]
+                  ,[1, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1]
+                  ,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+                  ,[0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0]
+                  ,[1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0]
+                  ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0]
+                  ,[1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0]
+                  ,[1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[1, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+                  ,[1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]];
+
+        console.log(codeStr);
+        var i = 0, codeIndex = 0, k = 24;
+        while (i < 16) {
+          mat[k][24] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][23] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          --k;
+        }
+        i = 0;
+        k = 9;
+        while (i < 16) {
+          mat[k][22] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][21] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 24;
+        while (i < 4) {
+          mat[k][20] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][19] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          --k;
+        }
+        i = 0;
+        k = 15;
+        while (i < 7) {
+          mat[k][20] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][19] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          --k;
+        }
+        i = 0;
+        k = 9;
+        while (i < 7) {
+          mat[k][18] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][17] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 21;
+        while (i < 4) {
+          mat[k][18] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][17] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 24;
+        while (i < 4) {
+          mat[k][16] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][15] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          --k;
+        }
+        i = 0;
+        k = 20;
+        while (i < 5) {
+          mat[k][15] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          --k;
+        }
+        i = 0;
+        k = 15;
+        while (i < 9) {
+          mat[k][16] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][15] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          --k;
+        }
+        i = 0;
+        k = 5;
+        while (i < 6) {
+          mat[k][16] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][15] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          --k;
+        }
+        i = 0;
+        k = 0;
+        while (i < 6) {
+          mat[k][14] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][13] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 7;
+        while (i < 18) {
+          mat[k][14] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][13] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 24;
+        while (i < 18) {
+          mat[k][12] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][11] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          --k;
+        }
+        i = 0;
+        k = 5;
+        while (i < 6) {
+          mat[k][12] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][11] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          --k;
+        }
+        
+        i = 0;
+        k = 0;
+        while (i < 6) {
+          mat[k][10] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][9] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 7;
+        while (i < 18) {
+          mat[k][10] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][9] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 9;
+        while (i < 8) {
+          mat[k][8] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][7] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 9;
+        while (i < 8) {
+          mat[k][5] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][4] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 9;
+        while (i < 8) {
+          mat[k][3] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][2] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        i = 0;
+        k = 9;
+        while (i < 8) {
+          mat[k][1] = codeStr[codeIndex];
+          ++codeIndex;
+          mat[k][0] = codeStr[codeIndex];
+          ++codeIndex;
+          ++i;
+          ++k;
+        }
+        console.log(codeIndex);
+
+        
+        var pixelSize = 250;
+        var matrix = [];
+        for(var i=0; i<pixelSize; i++) {
+          matrix[i] = [];
+            for(var j=0; j<pixelSize; j++) {
+              matrix[i][j] = undefined;
+          }
+        }
+        
+        for (var i = 0; i < 25; i++) {
+          for (var j = 0; j < 25; j++) {
+            var sizeRatio = 10;
+            for (var k = 0; k < sizeRatio; k++) {
+              for (var l = 0; l < sizeRatio; l++) {
+                matrix[sizeRatio*i+k][sizeRatio*j+l] = mat[i][j]
+              }
+            }
+          }
+        }
+        
+        var i;
+        for (i = 0; i < pixelSize*4; i += 4) {
+          for (j = 0; j < pixelSize*4; j += 4) {
+            if (matrix[i/4][j/4] == 1) {
+              imgData.data[pixelSize*i+j+0] = 0;
+              imgData.data[pixelSize*i+j+1] = 0;
+              imgData.data[pixelSize*i+j+2] = 0;
+              imgData.data[pixelSize*i+j+3] = 255;
+            }
+            else {
+              imgData.data[pixelSize*i+j+0] = 255;
+              imgData.data[pixelSize*i+j+1] = 255;
+              imgData.data[pixelSize*i+j+2] = 255;
+              imgData.data[pixelSize*i+j+3] = 255;
+            }
+          }
+        }
+        
+        ctx.putImageData(imgData, 0, 0);
+      }
+
       var url_string = window.location.href
       var url = new URL(url_string);
       var code = url.searchParams.get("code");
@@ -56,6 +332,20 @@
           active = data.active;
           if (data.active) $('#successP').show();
           else $('#dangerP').show();
+
+          $.ajax({
+            url: '/qrcode/generate',
+            type: 'POST',
+            cache: false,
+            contentType: "application/json; charset=utf-8",
+            success: function(data){
+              printQrCode(data.qrCodeStr);
+            },
+            error: function() {
+              alert('Connection error!');
+            }
+          });
+          
           
           const codeWriter = new ZXing.BrowserQRCodeSvgWriter();
           try {
@@ -64,6 +354,7 @@
             console.error(err);
           }
           console.log(result);
+          
         },
         error: function() {
           alert('Connection error!');

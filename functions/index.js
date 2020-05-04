@@ -95,7 +95,7 @@ app.post('/firebase/signout', function (req, res) {
 
 app.post('/qrcode/generate', function (req, res) {
     var codeStr = buildQrCode('');
-    printQrCode(codeStr);
+    res.send({ qrCodeStr : codeStr});
     res.end();
 });
 
@@ -290,8 +290,4 @@ function buildQrCode(lesCodeStr) {
     console.log(qrCodeStr.length);
 
     return qrCodeStr;
-}
-
-void printQrCode(codeStr) {
-
 }
