@@ -130,6 +130,10 @@ app.post('/qrcode/active/toggle', function (req, res) {
     });
 });
 
+app.post('/qrcode/active/counter', function (req, res) {
+    
+});
+
 exports.app = functions.https.onRequest(app);
 
 

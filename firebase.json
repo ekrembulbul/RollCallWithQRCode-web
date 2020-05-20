@@ -38,6 +38,11 @@
       "source": "/qrcode/active/toggle",
       "function": "app"
       }
+      ,
+      {
+      "source": "/qrcode/active/counter",
+      "function": "app"
+      }
     ],
     "ignore": [
       "firebase.json",
