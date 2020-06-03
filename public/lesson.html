@@ -30,7 +30,7 @@
     <script>
       $(".list-group").on("click", ".list-group-item", function(){
           var lessonCode = $(this).text().split(" ");
-          window.open("/qrcode?code=" + lessonCode[1]);
+          window.open("/dates?code=" + lessonCode[1]);
       });
 
       function signout() {

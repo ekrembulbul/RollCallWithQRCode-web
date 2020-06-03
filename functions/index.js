@@ -32,6 +32,11 @@ app.get('/qrcode', function (req, res) {
     else res.sendFile(path.join(__dirname, '../public', '/qrcode.html'));
 });
 
+app.get('/dates', function (req, res) {
+    if (firebase.auth().currentUser === null)  res.redirect('/login');
+    else res.sendFile(path.join(__dirname, '../public', '/dates.html'));
+});
+
 app.post('/login/check', function (req, res) {
     var email = req.body.email;
     var password = req.body.password;
@@ -87,6 +92,31 @@ app.post('/firebase/data', function (req, res) {
     });
 });
 
+app.post('/firebase/data/dates', function (req, res) {
+    var lessonCode = req.body.lessonCode;
+    firebase.database().ref('lessons/' + lessonCode + '/dates').once('value', function(snapshot){
+        var weeks = {}
+        snapshot.forEach(function(cSnapshot) {
+            var week = cSnapshot.key;
+            var dates = {}
+            cSnapshot.forEach(function(ccSnapshot) {
+                var date = ccSnapshot.key;
+                var times = {};
+                ccSnapshot.forEach(function(cccSnapshot) {
+                    var time = cccSnapshot.key;
+                    times[time] = cccSnapshot.child("done").val();
+                });
+                dates[date] = times;
+            });
+            weeks[week] = dates;  
+        });
+        time = JSON.stringify(weeks);
+        console.log(time);
+        res.send(time);
+        res.end();
+    });
+});
+
 app.post('/firebase/signout', function (req, res) {
     firebase.auth().signOut().then(function(){
         res.end();
@@ -104,11 +134,11 @@ app.post('/qrcode/active', function (req, res) {
     var lesCodeStr = lessonCodeString.split(" ");
     console.log(lessonCodeString);
 
-    firebase.database().ref('lessons/' + lesCodeStr[1] + '/dates/' + lesCodeStr[2] + '/active').once('value', function(snapshot){
+    firebase.database().ref('lessons/' + lesCodeStr[1] + '/dates/' + lesCodeStr[2] + "/" + lesCodeStr[3] + "/" + lesCodeStr[4] + '/active').once('value', function(snapshot){
         var activeVal = snapshot.val();
         console.log(activeVal);
         if (activeVal== null) {
-            firebase.database().ref('lessons/' + lesCodeStr[1] + '/dates/' + lesCodeStr[2] + '/active').set(false).then(function(){
+            firebase.database().ref('lessons/' + lesCodeStr[1] + '/dates/' + lesCodeStr[2] + "/" + lesCodeStr[3] + "/" + lesCodeStr[4] + '/active').set(false).then(function(){
                 res.send({ active: false });
                 res.end();
             });
@@ -125,9 +155,53 @@ app.post('/qrcode/active/toggle', function (req, res) {
     var lesCodeStr = lessonCodeString.split(" ");
     var active = req.body.active;
 
-    firebase.database().ref('lessons/' + lesCodeStr[1] + '/dates/' + lesCodeStr[2] + '/active').set(active).then(function(){
+    firebase.database().ref('lessons/' + lesCodeStr[1] + '/dates/' + lesCodeStr[2] + "/" + lesCodeStr[3] + "/" + lesCodeStr[4] + '/active').set(active).then(function(){
         res.end();
     });
+});
+
+app.post('/qrcode/active/done', function (req, res) {
+    var lessonCodeString = req.body.lessonCodeString;
+    var lesCodeStr = lessonCodeString.split(" ");
+
+    var code = lesCodeStr[1];
+    var week = lesCodeStr[2];
+    var date = lesCodeStr[3];
+    var time = lesCodeStr[4];
+
+    firebase.database().ref('lessons/' + code + '/dates/' + week + "/" + date + "/" + time + '/done').set(true).then(function(){
+        
+        firebase.database().ref('lessons/' + code + '/dates/' + week + "/" + date + "/" + time + "/status").once('value', function(snapshot){
+            snapshot.forEach(function(cSnapshot) {
+                if (cSnapshot.val() == 0) {
+                    firebase.database().ref('lessons/' + code + '/dates/' + week + "/" + date + "/" + time + "/status/" + cSnapshot.key).set(-1);
+                }
+            });
+
+            firebase.database().ref('students').once('value', function(snapshot){
+                snapshot.forEach(function(cSnapshot) {
+                    var flag = false;
+                    cSnapshot.child("registeredLesson").forEach(function(ccSnapshot) {
+                        console.log("code = " + ccSnapshot.val());
+                        if (ccSnapshot.val() === code) {
+                            flag = true;
+                            console.log("flag = true");
+                        }
+                    });
+                    if (flag) {
+                        firebase.database().ref('students/' + cSnapshot.key + "/status/" + code + '/' + week + "/" + date + "/" + time).set(-1);
+                    }
+                });
+
+                res.end();
+            });
+        });
+
+    });
+
+    
+
+    
 });
 
 app.post('/qrcode/active/counter', function (req, res) {

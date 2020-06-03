@@ -15,6 +15,7 @@
   </head>
   <body>
     <div class="text-center mt-4" style="width: 420px; margin: auto;">
+      <button style="width: 150px;" id="done" type="button" class="btn btn-secondary">Done</button>
       <button style="width: 150px;" id="activeToggle" type="button" class="btn btn-primary">Active Toggle</button>
       <p id="successP" class="bg-success text-white p-2 mt-3" style="font-size: large; margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>ACTIVE</b></p>
       <p id="dangerP" class="bg-danger text-white p-2 mt-3" style="font-size: large;margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>INACTIVE</b></p>
@@ -353,11 +354,13 @@
       var url_string = window.location.href
       var url = new URL(url_string);
       var code = url.searchParams.get("code");
-      var dateObj = new Date();
-      var date = dateObj.getUTCFullYear() + '-' + parseInt(dateObj.getUTCMonth() + 1) + '-' + dateObj.getUTCDate();
-      console.log(dateObj.getDate());
-      //var lessonCodeString = '$rc$ ' + code + ' ' + date;
-      var lessonCodeString = 'HELLO WORLD';
+      var week = url.searchParams.get("week");
+      var date = url.searchParams.get("date");
+      var time = url.searchParams.get("time");
+      
+      if (time == null) time = "null";
+      var lessonCodeString = '$rc$ ' + code + ' ' + week + ' ' + date + ' ' + time;
+      //var lessonCodeString = 'HELLO WORLD';
       var active = false;
 
       $.ajax({
@@ -405,6 +408,27 @@
       $('#activeToggle').click(function(){
         toggle();
       });
+
+      $('#done').click(function(){
+        done();
+      });
+
+      function done() {
+        if (active) toggle();
+        $.ajax({
+          url: '/qrcode/active/done',
+          type: 'POST',
+          cache: false,
+          data: JSON.stringify({ lessonCodeString: lessonCodeString}),
+          contentType: "application/json; charset=utf-8",
+          success: function(data){
+            alert("Polling completed");
+          },
+          error: function() {
+            alert('Connection error!');
+          }
+        });
+      }
 
       function toggle() {
         active = !active;

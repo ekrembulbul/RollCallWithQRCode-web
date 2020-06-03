@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src https://*; child-src 'none';"> -->
+
+    <!-- Bootstrap CSS -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+
+    <!-- <meta http-equiv="Content-Security-Policy" content="default-src 'self'; img-src 'self'; font-src 'self';"> -->
+
+    <title>Dates</title>
+  </head>
+  <body>
+    <div class="mt-5 mb-5" style="width: 400px; margin: auto;">
+      <h1 style="text-align: center;">Dates</h1>
+      <ul id="listGroup" class="list-group"></ul>
+      <button id="signout" type="button" class="btn btn-danger w-100 mt-2">Sign out</button>
+    </div>
+
+    <!-- Optional JavaScript -->
+    <!-- jQuery first, then Popper.js, then Bootstrap JS -->
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+
+    <script>
+      var url_string = window.location.href
+      var url = new URL(url_string);
+      var code = url.searchParams.get("code");
+
+      function datePrintVer(data) {
+        var data = data.split("-");
+        if (data[1].length == 1) data[1] = "0" + data[1];
+        if (data[2].length == 1) data[2] = "0" + data[2];
+        return data[2] + "/" + data[1] + "/" + data[0];
+      }
+
+      function datedataBaseVer(data) {
+        var data = data.split("/");
+        if (data[0][0] == 0) data[0] = data[0].substr(1);
+        if (data[1][0] == 0) data[1] = data[1].substr(1);
+        return data[2] + "-" + data[1] + "-" + data[0];
+      }
+
+      function timePrintVer(data) {
+        var data = data.split("-");
+        if (data[0].length == 1) data[0] = "0" + data[0];
+        if (data[1].length == 1) data[1] = "0" + data[1];
+        return data[0] + ":" + data[1];
+      }
+
+      function timedataBaseVer(data) {
+        var data = data.split(":");
+        if (data[0][0] == 0) data[0] = data[0].substr(1);
+        if (data[1][0] == 0) data[1] = data[1].substr(1);
+        return data[0] + "-" + data[1];
+      }
+
+      $(".list-group").on("click", ".clickItem", function(){
+        var id = $(this).attr("id");
+        var idSplit = id.split("_");
+        if (parseInt(idSplit[0]) == -1) {
+          var date = $(this).text();
+          var date = datedataBaseVer(date);
+          window.open("/qrcode?code=" + code + "&date=" + date);
+        }
+        else {
+          var weekIdStr = "#week" + parseInt(idSplit[0]);
+          var week = $(weekIdStr).text();
+          var week = week.split(" ");
+          var week = week[1] -1;
+          var dateIdStr = "#-1_date" + parseInt(idSplit[1]);
+          var date = $(dateIdStr).text();
+          var date = datedataBaseVer(date);
+          var time = $(this).text();
+          var time = time.split(" ");
+          var time = time[0];
+          var time = timedataBaseVer(time);
+          window.open("/qrcode?code=" + code + "&week=" + week + "&date=" + date + "&time=" + time);
+        }
+      });
+
+      function signout() {
+        $.ajax({ 
+          url: '/firebase/signout',
+          type: 'POST',
+          cache: false,
+          contentType: "application/json; charset=utf-8",
+          success: function(data){
+            window.open("/login", "_self");
+          },
+          error: function() {
+            alert('Connection error!');
+          }
+        });
+      }
+
+      $('#signout').click(function(){
+        signout();
+      });
+
+      function printData(data) {
+        var counterWeek = 0;
+        var counterDate = 0;
+        var counterTime = 0;
+        $.each(data, function(key, value) {
+          var html1 = '<li id="';
+          var html2 = '" class="list-group-item list-group-item-warning">';
+          var html3 = '</li>';
+          var idStr = "week";
+          var html = '<b>Week ' + (parseInt(key) + 1) + "</b> ";
+          $("#listGroup").append(html1 + idStr + counterWeek + html2 + html + html3);
+
+          $.each(value, function(key, value) {
+            var html1 = '<li id="';
+            var html2 = '" class="list-group-item list-group-item-primary">';
+            var html3 = '</li>';
+            var idStr = "date";
+            var html = datePrintVer(key);
+            $("#listGroup").append(html1 + "-1_" + idStr + counterDate + html2 + html + html3);
+
+            $.each(value, function(key, value) {
+              var html1 = '<button id="';
+              var html2 = '" type="button" class="clickItem list-group-item list-group-item-secondary list-group-item-action">';
+              var html3 = '</button>';
+              var idStrTime = "time";
+              var html = timePrintVer(key);
+              if (value) {
+                $("#listGroup").append(html1 + counterWeek + "_" + counterDate + "_" + idStrTime + counterTime + html2 + html + '<span style="float:right;"> &#10004;</span>' + html3);
+              }
+              else {
+                $("#listGroup").append(html1 + counterWeek + "_" + counterDate + "_" + idStrTime + counterTime + html2 + html + html3);
+              }
+              counterTime++;
+            });
+            counterDate++;
+          });
+          counterWeek++;
+        });
+      }
+
+      function readData() {
+        $.ajax({ 
+          url: '/firebase/data/dates',
+          type: 'POST',
+          cache: false,
+          contentType: "application/json; charset=utf-8",
+          data: JSON.stringify({ lessonCode: code }),
+          success: function(data){
+            var obj = JSON.parse(data);
+            printData(obj);
+          },
+          error: function() {
+            alert('Connection error!');
+          }
+        });
+      }
+      readData();
+    </script>
+  </body>
+</html>
