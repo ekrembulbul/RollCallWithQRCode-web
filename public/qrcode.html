@@ -413,6 +413,20 @@
         done();
       });
 
+      function sendEmail() {
+        $.ajax({
+          url: '/sendemail',
+          type: 'POST',
+          cache: false,
+          data: JSON.stringify({ lessonCodeString: lessonCodeString}),
+          contentType: "application/json; charset=utf-8",
+          success: function(data){
+          },
+          error: function() {
+          }
+        });
+      }
+
       function done() {
         if (active) toggle();
         $.ajax({
@@ -423,6 +437,7 @@
           contentType: "application/json; charset=utf-8",
           success: function(data){
             alert("Polling completed");
+            sendEmail();
           },
           error: function() {
             alert('Connection error!');

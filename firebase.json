@@ -51,7 +51,7 @@
       "function": "app"
       },
       {
-      "source": "/qrcode/active/counter",
+      "source": "/sendemail",
       "function": "app"
       }
     ],

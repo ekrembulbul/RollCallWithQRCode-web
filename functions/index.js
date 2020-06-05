@@ -3,6 +3,7 @@ const functions = require('firebase-functions');
 const path = require("path");
 const express = require('express');
 const bodyParser = require('body-parser');
+const nodemailer = require("nodemailer");
 const rs = require('./reedsolomon.js');
 const data = require('./data.json');
 const app = express();
@@ -169,6 +170,10 @@ app.post('/qrcode/active/done', function (req, res) {
     var date = lesCodeStr[3];
     var time = lesCodeStr[4];
 
+    firebase.database().ref('lessons/' + code + '/dates/' + week + "/" + date + "/" + time + '/done').once('value', function(snapshot){
+        if (snapshot.val() === true) res.end();
+    });
+
     firebase.database().ref('lessons/' + code + '/dates/' + week + "/" + date + "/" + time + '/done').set(true).then(function(){
         
         firebase.database().ref('lessons/' + code + '/dates/' + week + "/" + date + "/" + time + "/status").once('value', function(snapshot){
@@ -177,40 +182,147 @@ app.post('/qrcode/active/done', function (req, res) {
                     firebase.database().ref('lessons/' + code + '/dates/' + week + "/" + date + "/" + time + "/status/" + cSnapshot.key).set(-1);
                 }
             });
-
-            firebase.database().ref('students').once('value', function(snapshot){
-                snapshot.forEach(function(cSnapshot) {
-                    var flag = false;
-                    cSnapshot.child("registeredLesson").forEach(function(ccSnapshot) {
-                        console.log("code = " + ccSnapshot.val());
-                        if (ccSnapshot.val() === code) {
-                            flag = true;
-                            console.log("flag = true");
-                        }
-                    });
-                    if (flag) {
-                        firebase.database().ref('students/' + cSnapshot.key + "/status/" + code + '/' + week + "/" + date + "/" + time).set(-1);
-                    }
-                });
-
-                res.end();
-            });
+            res.end();
         });
-
     });
-
-    
-
-    
 });
 
-app.post('/qrcode/active/counter', function (req, res) {
-    
+app.post('/sendemail', function (req, res) {
+    var lessonCodeString = req.body.lessonCodeString;
+    var lesCodeStr = lessonCodeString.split(" ");
+
+    var code = lesCodeStr[1];
+    var week = lesCodeStr[2];
+    var date = lesCodeStr[3];
+    var time = lesCodeStr[4];
+
+    firebase.database().ref('students').once('value', function(snapshot){
+        snapshot.forEach(function(cSnapshot) {
+            var flag = false;
+            cSnapshot.child("registeredLesson").forEach(function(ccSnapshot) {
+                console.log("code = " + ccSnapshot.val());
+                if (ccSnapshot.val() === code) {
+                    flag = true;
+                    console.log("flag = true");
+                }
+            });
+            if (flag) {
+                if (cSnapshot.child("status").child(code).child(week).child(date).child(time).val() == 0) {
+                    firebase.database().ref('students/' + cSnapshot.key + "/status/" + code + '/' + week + "/" + date + "/" + time).set(-1);
+                }
+            }
+        });
+        checkAndSendEmail(res, code, week, date, time);
+    });
 });
 
 exports.app = functions.https.onRequest(app);
 
+function checkAndSendEmail(res, code, week, date, time) {
+    var studentList = []
 
+    firebase.database().ref('lessons/' + code + '/dates/' + week + "/" + date + "/" + time + '/status').once('value', function(snapshot){
+        snapshot.forEach(function(cSnapshot) {
+            if (cSnapshot.val() === -1) studentList.push(cSnapshot.key);
+        });0
+
+        firebase.database().ref('students').once('value', function(snapshot) {
+            studentList.forEach(function(student) {
+                var sum = 0;
+                var failed = 0;
+
+                snapshot.child(student).child("status").child(code).forEach(function(cSnapshot) {
+                    cSnapshot.forEach(function(ccSnapshot) {
+                        ccSnapshot.forEach(function(cccSnapshot) {
+                            sum++;
+                            if (cccSnapshot.val() === -1) failed++;
+                        });
+                    });
+                });
+
+                var failedTimeNumberFloat = sum * 3 / 10;
+                var failedTimeNumber = Math.floor(failedTimeNumberFloat);
+                failedTimeNumber++;
+                console.log("failedTimeNumber: " + failedTimeNumber);
+
+                if (failed >= failedTimeNumber) {
+                    var error = false;
+                    dbError = snapshot.child(student).child("email").child("error").child(code).val();
+                    if (dbError !== null) error = dbError;
+    
+                    if (!error) {
+                        sendEmail(code, student, "error", 0);
+                        firebase.database().ref('students/' + student + '/email/error/' + code).set(true);
+                    }
+                }
+                else if (failed < failedTimeNumber && failed >= failedTimeNumber - 6) {
+                    var warning = false;
+                    dbWarning = snapshot.child(student).child("email").child("warning").child(code).val();
+                    if (dbWarning !== null) warning = dbWarning;
+    
+                    if (!warning) {
+                        sendEmail(code, student, "warning", failedTimeNumber - failed);
+                        firebase.database().ref('students/' + student + '/email/warning/' + code).set(true);
+                    }
+                }
+            });
+            res.end();
+        });
+    });
+}
+
+function sendEmail(code, studentId, type, remainingTime) {
+    console.log("email sent " + type);
+    let testAccount = nodemailer.createTestAccount();
+
+    // create reusable transporter object using the default SMTP transport
+    let transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: 'ekrem.bulbul.52@gmail.com',
+            pass: '199773898814e'
+        }
+    });
+
+    var email = null;
+    firebase.database().ref('users/students').once('value', function(snapshot){
+        snapshot.forEach(function(cSnapshot) {
+            console.log(cSnapshot.child("sId").val() + ", " + studentId);
+            if (cSnapshot.child("sId").val() == studentId) {
+                email = cSnapshot.child("email").val();
+
+                console.log("email: " + email);
+
+                if (type === "warning") {
+                    var mailOptions = {
+                        from: 'ekrem.bulbul.52@gmail.com',
+                        to: email,
+                        subject: 'Information for the course ' + code,
+                        text: 'Hello ' + studentId + ',\n\nIf you do not come to ' + code + ' for ' + remainingTime + ' more hours, you will be left from the course.\n\nThank you.'
+                    };
+                }
+                else if (type === "error") {
+                    var mailOptions = {
+                        from: 'ekrem.bulbul.52@gmail.com',
+                        to: email,
+                        subject: 'Information for the course ' + code,
+                        text: 'Hello ' + studentId + ',\n\nYou have left the course ' + code + '.\n\nThank you.'
+                    };
+                }
+                
+                transporter.sendMail(mailOptions, function(error, info){
+                    if (error) {
+                        console.log(error);
+                    } else {
+                        console.log('Email sent: ' + info.response);
+                    }
+                });
+            }
+        });
+    });
+
+    
+}
 
 function fillZeros(length, str) {
     return '0'.repeat(length-str.length) + str;
