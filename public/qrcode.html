@@ -20,7 +20,7 @@
       <p id="successP" class="bg-success text-white p-2 mt-3" style="font-size: large; margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>ACTIVE</b></p>
       <p id="dangerP" class="bg-danger text-white p-2 mt-3" style="font-size: large;margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>INACTIVE</b></p>
       <p id="counter" class="p-2 mt-3" style="font-size: xx-large; color: darkblue; margin-bottom: 0; width: 200px; display: none; margin: auto;"><b></b></p>
-      <canvas id="myCanvas" width="250" height="250" class="m-3"> Your browser does not support the HTML5 canvas tag.</canvas>
+      <!-- <canvas id="myCanvas" width="250" height="250" class="m-3"> Your browser does not support the HTML5 canvas tag.</canvas> -->
       <div id="result"></div>
     </div>
 
@@ -377,6 +377,7 @@
           }
           else $('#dangerP').show();
 
+          /*
           $.ajax({
             url: '/qrcode/generate',
             type: 'POST',
@@ -389,7 +390,7 @@
               alert('Connection error!');
             }
           });
-          
+          */
           
           const codeWriter = new ZXing.BrowserQRCodeSvgWriter();
           try {
