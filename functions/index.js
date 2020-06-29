@@ -125,7 +125,8 @@ app.post('/firebase/signout', function (req, res) {
 });
 
 app.post('/qrcode/generate', function (req, res) {
-    var codeStr = buildQrCode('');
+    var lessonCodeString = req.body.lessonCodeString;
+    var codeStr = buildQrCode(lessonCodeString);
     res.send({ qrCodeStr : codeStr});
     res.end();
 });
@@ -298,7 +299,7 @@ function sendEmail(code, studentId, type, remainingTime) {
                         from: 'ekrem.bulbul.52@gmail.com',
                         to: email,
                         subject: 'Information for the course ' + code,
-                        text: 'Hello ' + studentId + ',\n\nIf you do not come to ' + code + ' for ' + remainingTime + ' more hours, you will be left from the course.\n\nThank you.'
+                        text: 'Hello ' + studentId + ',\n\nIf you do not attentd the ' + code + ' lecture ' + remainingTime + ' more hours, you will fail.\n\nThank you.'
                     };
                 }
                 else if (type === "error") {
@@ -306,7 +307,7 @@ function sendEmail(code, studentId, type, remainingTime) {
                         from: 'ekrem.bulbul.52@gmail.com',
                         to: email,
                         subject: 'Information for the course ' + code,
-                        text: 'Hello ' + studentId + ',\n\nYou have left the course ' + code + '.\n\nThank you.'
+                        text: 'Hello ' + studentId + ',\n\nYou have failed the ' + code + ' lecture.\n\nThank you.'
                     };
                 }
                 
@@ -408,7 +409,6 @@ function errorCodeWordEncode(codeWord, length) {
 }
 
 function buildQrCode(lesCodeStr) {
-    var lesCodeStr = 'HELLO WORLD'
     var qrCodeStr = '0010';
     console.log(qrCodeStr);
     console.log(qrCodeStr.length);

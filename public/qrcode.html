@@ -20,7 +20,7 @@
       <p id="successP" class="bg-success text-white p-2 mt-3" style="font-size: large; margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>ACTIVE</b></p>
       <p id="dangerP" class="bg-danger text-white p-2 mt-3" style="font-size: large;margin-bottom: 0; display: none; border: 2px solid; border-radius: 25px; width: 200px; margin: auto;"><b>INACTIVE</b></p>
       <p id="counter" class="p-2 mt-3" style="font-size: xx-large; color: darkblue; margin-bottom: 0; width: 200px; display: none; margin: auto;"><b></b></p>
-      <!-- <canvas id="myCanvas" width="250" height="250" class="m-3"> Your browser does not support the HTML5 canvas tag.</canvas> -->
+      <canvas id="myCanvas" width="250" height="250" class="m-3"> Your browser does not support the HTML5 canvas tag.</canvas>
       <div id="result"></div>
     </div>
 
@@ -273,6 +273,7 @@
         }
         console.log(codeIndex);
 
+        /*
         for (var i = 0; i < 25; ++i) {
           for (var j = 0; j < 25; ++j) {
             if (i >= 0 && i <= 8 && j >= 0 && j <= 8) continue;
@@ -288,6 +289,7 @@
             }
           }
         }
+        */
 
         var format = '011010101011111';
         var index = 0;
@@ -359,7 +361,7 @@
       var time = url.searchParams.get("time");
       
       if (time == null) time = "null";
-      var lessonCodeString = '$rc$ ' + code + ' ' + week + ' ' + date + ' ' + time;
+      var lessonCodeString = '$RC$ ' + code + ' ' + week + ' ' + date + ' ' + time;
       //var lessonCodeString = 'HELLO WORLD';
       var active = false;
 
@@ -377,11 +379,11 @@
           }
           else $('#dangerP').show();
 
-          /*
           $.ajax({
             url: '/qrcode/generate',
             type: 'POST',
             cache: false,
+            data: JSON.stringify({ lessonCodeString: lessonCodeString }),
             contentType: "application/json; charset=utf-8",
             success: function(data){
               printQrCode(data.qrCodeStr);
@@ -390,8 +392,8 @@
               alert('Connection error!');
             }
           });
-          */
           
+          /*
           const codeWriter = new ZXing.BrowserQRCodeSvgWriter();
           try {
             codeWriter.writeToDom('#result', lessonCodeString, 420, 420);
@@ -399,6 +401,7 @@
             console.error(err);
           }
           console.log(result);
+          */
           
         },
         error: function() {
